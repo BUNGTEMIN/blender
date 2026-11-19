@@ -1,0 +1,33 @@
+name: Blender Video Render
+
+on:
+  workflow_dispatch:
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Install Blender
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y blender
+
+      - name: Render Animation
+        run: |
+          mkdir -p output
+          blender -b project.blend             -o //output/frame_             -F PNG             -a
+
+      - name: Convert Frames to MP4
+        run: |
+          sudo apt-get install -y ffmpeg
+          ffmpeg -framerate 30             -i output/frame_%04d.png             -c:v libx264             -pix_fmt yuv420p             output/video.mp4
+
+      - name: Upload Video
+        uses: actions/upload-artifact@v4
+        with:
+          name: blender-video
+          path: output/video.mp4
